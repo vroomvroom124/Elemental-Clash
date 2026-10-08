@@ -48,12 +48,12 @@ function storage:WaitForChild(name) assert(name=='CombatAnimationRemote'); retur
 local services={Players=players,ReplicatedStorage=storage,RunService=run,Debris={}}
 local game={}
 function game:GetService(name) assert(services[name], name); return services[name] end
-local function character(r15)
+local function character(r15, jointClass)
     local c={Parent=true, joints={}, hum={Health=100}}
     local names=r15 and {'Root','RightShoulder','LeftShoulder','RightHip','LeftHip','Waist','Neck','RightElbow','LeftElbow','RightKnee','LeftKnee'} or {'Right Shoulder','Left Shoulder','Right Hip','Left Hip','RootJoint','Neck'}
     for _,name in ipairs(names) do
         local j={Name=name,Parent=c,Transform=identity()}
-        function j:IsA(kind) return kind=='Motor6D' end
+        function j:IsA(kind) return kind==(jointClass or 'Motor6D') end
         c.joints[name]=j
     end
     function c:IsA(kind) return kind=='Model' end

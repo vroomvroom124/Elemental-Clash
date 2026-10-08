@@ -58,3 +58,19 @@ streamed.joints.RightElbow=elbow
 step(0.6)
 assert(not equal(elbow.Transform,CFrame.identity),'Late-streamed joint was not collected')
 print('PASS: punch locomotion, elbow/knee articulation, recovery, guard recoil, interruptions, death, R6, cleanup, streaming')
+
+local upgraded=character(true, 'AnimationConstraint')
+remote.OnClientEvent:Fire(upgraded,'BlockStart')
+for _=1,30 do step(1/60) end
+assert(equal(upgraded.joints.RightElbow.Transform,blockPose.RightElbow),'Upgraded R15 guard did not animate')
+assert(equal(upgraded.joints.Root.Transform,CFrame.identity),'Upgraded R15 root was overwritten')
+remote.OnClientEvent:Fire(upgraded,'BlockEnd')
+for _=1,100 do step(1/60) end
+assert(next(states[upgraded].offsets)==nil,'Upgraded R15 guard did not release')
+remote.OnClientEvent:Fire(upgraded,'Light3')
+step(0.11)
+assert(not equal(upgraded.joints.RightKnee.Transform,CFrame.identity),'Upgraded R15 kick did not animate')
+upgraded.hum.Health=0
+step(1/60)
+assert(next(states[upgraded].bases)==nil,'Upgraded R15 death did not release overrides')
+print('PASS: AnimationConstraint R15 guard, recovery, kick, death, and root preservation')

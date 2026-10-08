@@ -1,5 +1,5 @@
 -- Elemental Clash v0.3 - procedural combat animation layer.
--- Blended procedural poses using Motor6D.Transform; no uploaded animation assets needed.
+-- Blended procedural poses using joint.Transform; supports Motor6D and AnimationConstraint.
 -- Every client animates all visible fighters using events confirmed by the server.
 -- R15 is recommended. Basic R6 support is provided.
 local Players = game:GetService("Players")
@@ -15,7 +15,7 @@ local function R(x, y, z)
     return CFrame.Angles(math.rad(x), math.rad(y), math.rad(z))
 end
 
--- Pose names are logical joints. Map them to physical Motor6D joints on R15/R6.
+-- Pose names are logical joints. Map them to Motor6D or upgraded R15 AnimationConstraint joints.
 local jointNames = {
     RightShoulder = {"RightShoulder", "Right Shoulder"},
     LeftShoulder = {"LeftShoulder", "Left Shoulder"},
@@ -32,7 +32,7 @@ local jointNames = {
 local function collectJoints(model)
     local motors = {}
     for _, descendant in ipairs(model:GetDescendants()) do
-        if descendant:IsA("Motor6D") then motors[descendant.Name] = descendant end
+        if descendant:IsA("Motor6D") or descendant:IsA("AnimationConstraint") then motors[descendant.Name] = descendant end
     end
     local result = {}
     for key, names in pairs(jointNames) do

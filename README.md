@@ -75,3 +75,23 @@ python tests/check.py --luau-dir /path/to/luau
 ```
 
 The runner compiles all four scripts, compares each embedded installer source with its standalone file, and exercises animation state/joint ownership plus installer reruns in a mock runtime. These checks do not simulate Roblox physics, networking, or visual joint orientation. No server source, remote format, damage tuning, input, camera, or HUD code was changed in this polish pass.
+
+## Newer R15 joint compatibility
+
+The animation client supports both legacy `Motor6D` joints and upgraded R15 `AnimationConstraint` joints. Roblox's Avatar Joint Upgrade can spawn R15 characters with AnimationConstraints, which the first client version skipped. Both use the documented `Transform` property; no avatar settings, attachments, combat servers, or physics settings are changed.
+
+For an already installed copy, stop Play and open `StarterPlayer/StarterPlayerScripts/CombatAnimationClient`. Replace:
+
+```lua
+if descendant:IsA("Motor6D") then motors[descendant.Name] = descendant end
+```
+
+with:
+
+```lua
+if descendant:IsA("Motor6D") or descendant:IsA("AnimationConstraint") then motors[descendant.Name] = descendant end
+```
+
+Then press Play and hold F or attack. The downloadable installer already includes this change.
+
+Reference: [Roblox AnimationConstraint documentation](https://create.roblox.com/docs/reference/engine/classes/AnimationConstraint).
