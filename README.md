@@ -105,3 +105,9 @@ local blockPose = {RightShoulder=R(35,-12,25), LeftShoulder=R(35,12,-25), RightE
 ```
 
 Stop Play first, edit the source under StarterPlayerScripts, then restart Play and hold F. Check from the side that forearms and hands are in front of the torso. The downloadable full client/installer also includes the defensive reaction corrections. Custom joint axes still require Studio visual checks.
+
+## Forward punch correction
+
+Jab, cross, and heavy now use forward shoulder pitch, positive elbow flexion, compact recovery, and a guarded rear hand. The same reversed limb convention was corrected in the front kick and boulder poses. Existing keyframe times, action events, server combat, and damage windows remain unchanged. The mock suite checks forward hand extension/retraction using standard R15 joint axes; body proportions, retargeting, and visual quality still need Studio playtesting.
+
+For an existing installation, stop Play, copy the full current `CombatAnimationClient.lua`, and replace the source of `StarterPlayer/StarterPlayerScripts/CombatAnimationClient`. Updating only this LocalScript preserves any Studio-specific server changes. Replace the source in Edit mode so it persists after restarting Play. You do not need to rerun the full installer or add animation assets.

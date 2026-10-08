@@ -80,3 +80,38 @@ for _, name in ipairs({'RightShoulder','LeftShoulder','RightElbow','LeftElbow'})
     assert(blockPose[name][8] > 0, name..' guard pitch points behind the fighter')
 end
 print('PASS: guard limb pitch faces forward under standard R15 joint axes')
+
+-- Kinematic direction check on standard R15 axes, with equal-length upper/lower arms.
+local function handForward(pose, side)
+    local shoulder=assert(pose[side..'Shoulder'])
+    local elbow=assert(pose[side..'Elbow'])
+    local forearm=shoulder*elbow
+    -- Resting limbs point down (-Y), and fighter-forward is -Z.
+    return shoulder[8]+forearm[8]
+end
+for _, spec in ipairs({{'Light1','Right','Left'}, {'Light2','Left','Right'}, {'Heavy','Right','Left'}}) do
+    local frames=clips[spec[1]]
+    local windup, strike, recovery=frames[2][2],frames[3][2],frames[4][2]
+    assert(handForward(strike,spec[2])>1.8,spec[1]..' strike points behind or away from opponent')
+    assert(handForward(strike,spec[2])>handForward(windup,spec[2])+0.5,spec[1]..' does not extend from windup')
+    assert(handForward(recovery,spec[2])<handForward(strike,spec[2])-0.5,spec[1]..' does not retract')
+    assert(handForward(strike,spec[3])>0.8,spec[1]..' rear hand is behind torso')
+end
+for name, times in pairs({Light1={0,0.07,0.15,0.27,0.34},Light2={0,0.09,0.17,0.29,0.36},Light3={0,0.11,0.22,0.43,0.58},Heavy={0,0.20,0.43,0.68,0.86},BoulderLaunch={0,0.10,0.25,0.46,0.62}}) do
+    assert(#clips[name]==#times,name..' changed keyframe count')
+    for i,time in ipairs(times) do assert(clips[name][i][1]==time,name..' changed existing timing') end
+end
+assert(clips.Light3[3][2].RightHip[8]>0,'Kick hip points backward')
+assert(clips.Light3[2][2].RightKnee[8]<0,'Kick knee folds forward instead of backward')
+assert(handForward(boulderPose,'Right')>0 and handForward(boulderPose,'Left')>0,'Boulder hold arms point behind torso')
+for _,class in ipairs({'Motor6D','AnimationConstraint'}) do
+    local boxer=character(true,class)
+    boxer.joints.LeftHip.Transform=legBase
+    remote.OnClientEvent:Fire(boxer,'Light2')
+    for _=1,10 do step(1/60) end
+    assert(not equal(boxer.joints.LeftShoulder.Transform,CFrame.identity),class..' cross did not animate')
+    assert(equal(boxer.joints.LeftHip.Transform,legBase),class..' cross changed locomotion leg')
+    for _=1,100 do step(1/60) end
+    assert(next(states[boxer].offsets)==nil,class..' cross did not release')
+end
+print('PASS: forward punch extension, retraction, rear-hand guard, kick/boulder direction, preserved timings, both joint classes')

@@ -676,31 +676,32 @@ end
 local clips = {
     Light1 = {
         {0, {}},
-        {0.07, {RightElbow=R(-95,0,0), LeftElbow=R(-90,0,0), RightShoulder=R(28,-18,32), LeftShoulder=R(-10,5,-10), Waist=R(0,-15,0)}},
-        {0.15, {RightElbow=R(-12,0,0), LeftElbow=R(-100,0,0), RightShoulder=R(-92,5,8), LeftShoulder=R(-30,0,-14), Waist=R(0,26,0), Neck=R(0,-8,0)}},
-        {0.27, {RightElbow=R(-90,0,0), LeftElbow=R(-100,0,0), RightShoulder=R(-32,0,20), Waist=R(0,10,0)}},
+        -- Compact guard -> forward extension -> guard. The rear hand stays up.
+        {0.07, {RightShoulder=R(25,-8,12), RightElbow=R(115,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(0,-12,0)}},
+        {0.15, {RightShoulder=R(88,0,5), RightElbow=R(8,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(-3,18,0), Neck=R(0,-8,0)}},
+        {0.27, {RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(0,6,0)}},
         {0.34, {}},
     },
     Light2 = {
         {0, {}},
-        {0.09, {LeftElbow=R(-100,0,0), RightElbow=R(-90,0,0), LeftShoulder=R(26,12,-35), RightShoulder=R(-20,0,13), Waist=R(0,16,0)}},
-        {0.17, {LeftElbow=R(-12,0,0), RightElbow=R(-100,0,0), LeftShoulder=R(-92,0,-12), RightShoulder=R(-25,0,12), Waist=R(0,-26,0), Neck=R(0,8,0)}},
-        {0.29, {LeftElbow=R(-90,0,0), RightElbow=R(-100,0,0), LeftShoulder=R(-30,0,-10), Waist=R(0,-10,0)}},
+        {0.09, {LeftShoulder=R(25,8,-12), LeftElbow=R(115,0,0), RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), Waist=R(0,12,0)}},
+        {0.17, {LeftShoulder=R(88,0,-5), LeftElbow=R(8,0,0), RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), Waist=R(-3,-18,0), Neck=R(0,8,0)}},
+        {0.29, {LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), Waist=R(0,-6,0)}},
         {0.36, {}},
     },
     Light3 = {
         {0, {}},
-        -- Chamber, extend, re-chamber: hips drive the kick, hands stay guarded.
-        {0.11, {RightShoulder=R(-28,0,22), LeftShoulder=R(-35,0,-22), RightElbow=R(-100,0,0), LeftElbow=R(-105,0,0), Waist=R(-8,-18,0), RightHip=R(-65,0,0), RightKnee=R(95,0,0)}},
-        {0.22, {RightShoulder=R(-35,0,20), LeftShoulder=R(-35,0,-20), RightElbow=R(-95,0,0), LeftElbow=R(-100,0,0), Waist=R(-12,16,0), RightHip=R(-82,0,0), RightKnee=R(8,0,0), LeftHip=R(8,0,0)}},
-        {0.43, {RightShoulder=R(-28,0,20), LeftShoulder=R(-30,0,-20), RightElbow=R(-90,0,0), LeftElbow=R(-95,0,0), RightHip=R(-40,0,0), RightKnee=R(65,0,0), Waist=R(-4,6,0)}},
+        -- Forward hip pitch and backward knee flexion; hands retain guard.
+        {0.11, {RightShoulder=R(35,-8,18), LeftShoulder=R(35,8,-18), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(6,-18,0), RightHip=R(65,0,0), RightKnee=R(-95,0,0)}},
+        {0.22, {RightShoulder=R(35,-8,18), LeftShoulder=R(35,8,-18), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(10,16,0), RightHip=R(82,0,0), RightKnee=R(-8,0,0), LeftHip=R(-8,0,0)}},
+        {0.43, {RightShoulder=R(35,-8,18), LeftShoulder=R(35,8,-18), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), RightHip=R(40,0,0), RightKnee=R(-65,0,0), Waist=R(4,6,0)}},
         {0.58, {}},
     },
     Heavy = {
         {0, {}},
-        {0.20, {RightElbow=R(-105,0,0), LeftElbow=R(-95,0,0), RightShoulder=R(40,0,52), LeftShoulder=R(10,0,-27), Waist=R(-8,-42,0), Neck=R(-5,0,0)}},
-        {0.43, {RightElbow=R(-18,0,0), LeftElbow=R(-100,0,0), RightShoulder=R(-105,0,-17), LeftShoulder=R(-72,0,-25), Waist=R(20,37,0), Neck=R(8,0,0)}},
-        {0.68, {RightElbow=R(-75,0,0), LeftElbow=R(-95,0,0), RightShoulder=R(-60,0,10), Waist=R(6,12,0)}},
+        {0.20, {RightShoulder=R(45,-10,22), RightElbow=R(120,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(4,-28,0), Neck=R(-5,0,0)}},
+        {0.43, {RightShoulder=R(88,0,8), RightElbow=R(12,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(-8,28,0), Neck=R(5,0,0)}},
+        {0.68, {RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(-3,8,0)}},
         {0.86, {}},
     },
     Dodge = {
@@ -733,16 +734,16 @@ local clips = {
     },
     BoulderLaunch = {
         {0, {}},
-        {0.10, {RightElbow=R(-95,0,0), LeftElbow=R(-95,0,0), RightShoulder=R(10,0,45), LeftShoulder=R(10,0,-65), Waist=R(-11,-18,0)}},
-        {0.25, {RightElbow=R(-10,0,0), LeftElbow=R(-10,0,0), RightShoulder=R(-95,0,15), LeftShoulder=R(-95,0,-14), Waist=R(17,20,0)}},
-        {0.46, {RightShoulder=R(-45,0,18), LeftShoulder=R(-45,0,-18)}},
+        {0.10, {RightShoulder=R(30,0,25), LeftShoulder=R(30,0,-25), RightElbow=R(105,0,0), LeftElbow=R(105,0,0), Waist=R(6,-12,0)}},
+        {0.25, {RightShoulder=R(88,0,12), LeftShoulder=R(88,0,-12), RightElbow=R(10,0,0), LeftElbow=R(10,0,0), Waist=R(-10,12,0)}},
+        {0.46, {RightShoulder=R(45,0,18), LeftShoulder=R(45,0,-18), RightElbow=R(65,0,0), LeftElbow=R(65,0,0)}},
         {0.62, {}},
     },
 }
 
 -- Positive X pitch brings downward R15 arms toward character-forward (-Z).
 local blockPose = {RightShoulder=R(35,-12,25), LeftShoulder=R(35,12,-25), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(6,0,0)}
-local boulderPose = {RightShoulder=R(-65,0,26), LeftShoulder=R(-65,0,-26), RightElbow=R(-35,0,0), LeftElbow=R(-35,0,0), Waist=R(-7,0,0)}
+local boulderPose = {RightShoulder=R(65,0,26), LeftShoulder=R(65,0,-26), RightElbow=R(35,0,0), LeftElbow=R(35,0,0), Waist=R(-7,0,0)}
 
 -- Only joints authored by a clip are owned; punching never resets walking legs.
 local clipJoints = {}
