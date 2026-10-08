@@ -95,3 +95,13 @@ if descendant:IsA("Motor6D") or descendant:IsA("AnimationConstraint") then motor
 Then press Play and hold F or attack. The downloadable installer already includes this change.
 
 Reference: [Roblox AnimationConstraint documentation](https://create.roblox.com/docs/reference/engine/classes/AnimationConstraint).
+
+## Guard direction correction
+
+The guard's shoulder and elbow pitch signs now bring standard R15 arms forward rather than behind the torso. Parry and block recoil use the same defensive convention. In an existing Studio client, replace the `local blockPose = ...` line with:
+
+```lua
+local blockPose = {RightShoulder=R(35,-12,25), LeftShoulder=R(35,12,-25), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(6,0,0)}
+```
+
+Stop Play first, edit the source under StarterPlayerScripts, then restart Play and hold F. Check from the side that forearms and hands are in front of the torso. The downloadable full client/installer also includes the defensive reaction corrections. Custom joint axes still require Studio visual checks.

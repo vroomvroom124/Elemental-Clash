@@ -722,13 +722,13 @@ local clips = {
     },
     Parry = {
         {0, {}},
-        {0.08, {RightElbow=R(-100,0,0), LeftElbow=R(-100,0,0), RightShoulder=R(-60,0,30), LeftShoulder=R(-60,0,-30), Waist=R(8,0,0)}},
-        {0.22, {RightShoulder=R(-60,0,17), LeftShoulder=R(-60,0,-17)}},
+        {0.08, {RightElbow=R(100,0,0), LeftElbow=R(100,0,0), RightShoulder=R(60,0,30), LeftShoulder=R(60,0,-30), Waist=R(8,0,0)}},
+        {0.22, {RightShoulder=R(60,0,17), LeftShoulder=R(60,0,-17)}},
         {0.36, {}},
     },
     BlockHit = {
         {0, {}},
-        {0.06, {RightShoulder=R(-60,-12,35), LeftShoulder=R(-60,12,-35), RightElbow=R(-115,0,0), LeftElbow=R(-115,0,0), Waist=R(-6,0,0)}},
+        {0.06, {RightShoulder=R(60,-12,35), LeftShoulder=R(60,12,-35), RightElbow=R(115,0,0), LeftElbow=R(115,0,0), Waist=R(-6,0,0)}},
         {0.18, {}},
     },
     BoulderLaunch = {
@@ -740,7 +740,8 @@ local clips = {
     },
 }
 
-local blockPose = {RightShoulder=R(-35,-12,25), LeftShoulder=R(-35,12,-25), RightElbow=R(-110,0,0), LeftElbow=R(-110,0,0), Waist=R(6,0,0)}
+-- Positive X pitch brings downward R15 arms toward character-forward (-Z).
+local blockPose = {RightShoulder=R(35,-12,25), LeftShoulder=R(35,12,-25), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(6,0,0)}
 local boulderPose = {RightShoulder=R(-65,0,26), LeftShoulder=R(-65,0,-26), RightElbow=R(-35,0,0), LeftElbow=R(-35,0,0), Waist=R(-7,0,0)}
 
 -- Only joints authored by a clip are owned; punching never resets walking legs.

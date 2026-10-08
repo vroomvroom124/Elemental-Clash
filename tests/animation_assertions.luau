@@ -74,3 +74,9 @@ upgraded.hum.Health=0
 step(1/60)
 assert(next(states[upgraded].bases)==nil,'Upgraded R15 death did not release overrides')
 print('PASS: AnimationConstraint R15 guard, recovery, kick, death, and root preservation')
+
+-- Standard R15 arms point down (-Y): positive X bends toward forward (-Z).
+for _, name in ipairs({'RightShoulder','LeftShoulder','RightElbow','LeftElbow'}) do
+    assert(blockPose[name][8] > 0, name..' guard pitch points behind the fighter')
+end
+print('PASS: guard limb pitch faces forward under standard R15 joint axes')
