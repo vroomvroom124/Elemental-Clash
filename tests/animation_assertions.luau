@@ -1,0 +1,60 @@
+local fighter=character(true)
+local legBase=CFrame.Angles(0.25,0,0)
+fighter.joints.LeftHip.Transform=legBase
+remote.OnClientEvent:Fire(fighter,'Light1')
+step(0.15)
+assert(states[fighter].joints.Waist==fighter.joints.Waist,'R15 root was selected instead of Waist')
+assert(equal(fighter.joints.Root.Transform,CFrame.identity),'Punch posed R15 root')
+assert(equal(fighter.joints.LeftHip.Transform,legBase),'Punch stomped locomotion')
+assert(not equal(fighter.joints.RightElbow.Transform,CFrame.identity),'Punch did not articulate elbow')
+run.PreAnimation:Fire()
+assert(equal(fighter.joints.RightElbow.Transform,CFrame.identity),'Previous override was not removed')
+assert(equal(fighter.joints.LeftHip.Transform,legBase),'Restore touched unowned hip')
+for _=1,100 do step(1/60) end
+assert(next(states[fighter].offsets)==nil,'Recovery did not release joints')
+assert(equal(fighter.joints.RightShoulder.Transform,CFrame.identity),'Shoulder did not recover')
+remote.OnClientEvent:Fire(fighter,'BlockStart')
+for _=1,30 do step(1/60) end
+assert(states[fighter].blocking and not equal(fighter.joints.RightElbow.Transform,CFrame.identity),'Guard did not bend elbow')
+assert(equal(fighter.joints.RightElbow.Transform,blockPose.RightElbow),'Held pose accumulated frame over frame')
+run.PreAnimation:Fire()
+local newBase=CFrame.Angles(0.1,0.2,0)
+fighter.joints.RightShoulder.Transform=newBase
+run.PreSimulation:Fire(1/60)
+run.PreAnimation:Fire()
+assert(equal(fighter.joints.RightShoulder.Transform,newBase),'Restore lost fresh Animator output')
+remote.OnClientEvent:Fire(fighter,'BlockHit')
+assert(states[fighter].active.name=='BlockHit','Server-confirmed BlockHit ignored')
+for _=1,30 do step(1/60) end
+assert(states[fighter].blocking and states[fighter].active==nil,'BlockHit lost held guard')
+remote.OnClientEvent:Fire(fighter,'BlockEnd')
+for _=1,100 do step(1/60) end
+assert(next(states[fighter].offsets)==nil,'Guard release left stale offsets')
+remote.OnClientEvent:Fire(fighter,'Light3')
+step(0.11)
+assert(not equal(fighter.joints.RightKnee.Transform,CFrame.identity),'Kick did not chamber knee')
+remote.OnClientEvent:Fire(fighter,'BoulderStart')
+assert(states[fighter].active==nil and states[fighter].boulder,'Boulder did not interrupt old clip')
+remote.OnClientEvent:Fire(fighter,'BoulderLaunch')
+assert(states[fighter].active.name=='BoulderLaunch' and not states[fighter].boulder,'Launch state wrong')
+remote.OnClientEvent:Fire(fighter,'Hit')
+assert(states[fighter].active.name=='Hit','Hit did not interrupt launch')
+fighter.hum.Health=0
+step(1/60)
+assert(next(states[fighter].offsets)==nil and next(states[fighter].bases)==nil,'Death retained overrides')
+local classic=character(false)
+remote.OnClientEvent:Fire(classic,'Light3')
+step(0.11)
+assert(not equal(classic.joints['Right Hip'].Transform,CFrame.identity),'R6 fallback did not animate')
+classic.Parent=nil
+step(1/60)
+assert(states[classic]==nil,'Removed character state was retained')
+local streamed=character(true)
+local elbow=streamed.joints.RightElbow
+streamed.joints.RightElbow=nil
+remote.OnClientEvent:Fire(streamed,'BlockStart')
+step(0.05)
+streamed.joints.RightElbow=elbow
+step(0.6)
+assert(not equal(elbow.Transform,CFrame.identity),'Late-streamed joint was not collected')
+print('PASS: punch locomotion, elbow/knee articulation, recovery, guard recoil, interruptions, death, R6, cleanup, streaming')
