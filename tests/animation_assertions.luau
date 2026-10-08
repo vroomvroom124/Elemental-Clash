@@ -89,20 +89,25 @@ local function handForward(pose, side)
     -- Resting limbs point down (-Y), and fighter-forward is -Z.
     return shoulder[8]+forearm[8]
 end
-for _, spec in ipairs({{'Light1','Right','Left'}, {'Light2','Left','Right'}, {'Heavy','Right','Left'}}) do
-    local frames=clips[spec[1]]
-    local windup, strike, recovery=frames[2][2],frames[3][2],frames[4][2]
+local function frameAt(name, time)
+    for _, frame in ipairs(clips[name]) do
+        if frame[1] == time then return frame[2] end
+    end
+    error(name..' missing original timing point '..time)
+end
+for _, spec in ipairs({{'Light1','Right','Left',0.07,0.15,0.27}, {'Light2','Left','Right',0.09,0.17,0.29}, {'Heavy','Right','Left',0.20,0.43,0.68}}) do
+    local windup, strike, recovery=frameAt(spec[1],spec[4]),frameAt(spec[1],spec[5]),frameAt(spec[1],spec[6])
     assert(handForward(strike,spec[2])>1.8,spec[1]..' strike points behind or away from opponent')
     assert(handForward(strike,spec[2])>handForward(windup,spec[2])+0.5,spec[1]..' does not extend from windup')
     assert(handForward(recovery,spec[2])<handForward(strike,spec[2])-0.5,spec[1]..' does not retract')
-    assert(handForward(strike,spec[3])>0.8,spec[1]..' rear hand is behind torso')
+    assert(handForward(strike,spec[3])>0.65,spec[1]..' rear hand is behind torso')
 end
 for name, times in pairs({Light1={0,0.07,0.15,0.27,0.34},Light2={0,0.09,0.17,0.29,0.36},Light3={0,0.11,0.22,0.43,0.58},Heavy={0,0.20,0.43,0.68,0.86},BoulderLaunch={0,0.10,0.25,0.46,0.62}}) do
-    assert(#clips[name]==#times,name..' changed keyframe count')
-    for i,time in ipairs(times) do assert(clips[name][i][1]==time,name..' changed existing timing') end
+    assert(clips[name][1][1]==0 and clips[name][#clips[name]][1]==times[#times],name..' changed duration')
+    for _,time in ipairs(times) do frameAt(name,time) end
 end
-assert(clips.Light3[3][2].RightHip[8]>0,'Kick hip points backward')
-assert(clips.Light3[2][2].RightKnee[8]<0,'Kick knee folds forward instead of backward')
+assert(frameAt('Light3',0.22).RightHip[8]>0,'Kick hip points backward')
+assert(frameAt('Light3',0.11).RightKnee[8]<0,'Kick knee folds forward instead of backward')
 assert(handForward(boulderPose,'Right')>0 and handForward(boulderPose,'Left')>0,'Boulder hold arms point behind torso')
 for _,class in ipairs({'Motor6D','AnimationConstraint'}) do
     local boxer=character(true,class)
@@ -115,3 +120,42 @@ for _,class in ipairs({'Motor6D','AnimationConstraint'}) do
     assert(next(states[boxer].offsets)==nil,class..' cross did not release')
 end
 print('PASS: forward punch extension, retraction, rear-hand guard, kick/boulder direction, preserved timings, both joint classes')
+
+-- A compact guard should bring the hands inward and near shoulder height,
+-- rather than sending them out to either side (standard R15 axes/unit limbs).
+for _,side in ipairs({'Right','Left'}) do
+    local shoulder,elbow=readyPose[side..'Shoulder'],readyPose[side..'Elbow']
+    local forearm=shoulder*elbow
+    local handX=-shoulder[2]-forearm[2]
+    local handY=-shoulder[5]-forearm[5]
+    assert((side=='Right' and handX < -0.15) or (side=='Left' and handX > 0.15),side..' guard hand points outward')
+    assert(handY > -0.15 and handY < 0.4,side..' guard hand is not near shoulder height')
+end
+-- The timed clip reaches and holds contact, without a second smoothing pass.
+for _,class in ipairs({'Motor6D','AnimationConstraint'}) do
+    for _,rate in ipairs({30,60,120}) do
+        local crisp=character(true,class)
+        crisp.joints.LeftHip.Transform=legBase
+        remote.OnClientEvent:Fire(crisp,'Light1')
+        local start=now
+        while now-start < 0.15 do step(1/rate) end
+        assert(equal(crisp.joints.RightShoulder.Transform,punchPoses.JabContact.RightShoulder),'Contact lag at '..rate..' FPS on '..class)
+        assert(equal(crisp.joints.RightElbow.Transform,punchPoses.JabContact.RightElbow),'Elbow contact lag')
+        step(math.min(0.01,(0.185-(now-start))*0.5))
+        assert(equal(crisp.joints.RightShoulder.Transform,punchPoses.JabContact.RightShoulder),'Contact silhouette not held')
+        assert(equal(crisp.joints.LeftHip.Transform,legBase),'Sharper punch affected walking leg')
+        while now-start < 0.35 do step(1/rate) end
+        assert(states[crisp].active==nil and now<states[crisp].guardUntil,'Combo guard bridge missing')
+        assert(equal(crisp.joints.RightElbow.Transform,readyPose.RightElbow),'Arm dropped between combo hits')
+        local prior=crisp.joints.RightShoulder.Transform
+        remote.OnClientEvent:Fire(crisp,'Light2')
+        step(0)
+        assert(equal(crisp.joints.RightShoulder.Transform,prior),'Combo interruption snapped the rear arm')
+        assert(now<states[crisp].guardUntil,'Second hit did not renew combo guard')
+        remote.OnClientEvent:Fire(crisp,'Dodge')
+        assert(states[crisp].guardUntil==0,'Dodge did not cancel cosmetic ready guard')
+        for _=1,100 do step(1/60) end
+        assert(next(states[crisp].offsets)==nil,'Interrupted combo did not restore Animator control')
+    end
+end
+print('PASS: tucked guard geometry, exact contact at 30/60/120 FPS, contact hold, combo continuity, dodge interruption, recovery')

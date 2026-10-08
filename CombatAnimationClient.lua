@@ -49,36 +49,65 @@ local function collectJoints(model)
 end
 
 -- Each clip uses authored poses at specific times. No hardcoded animation asset IDs.
--- Durations correspond roughly to combat timings in CombatConfig v0.2.
+-- Existing impact times and clip lengths are preserved; server CombatConfig still
+-- controls gameplay timing. Repeated poses create anticipation and contact holds.
+-- Compact guard: mirrored inward shoulder yaw, little elbow flare, high forearms.
+local readyPose = {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0)}
+local attackClips = {Light1=true, Light2=true, Light3=true, Heavy=true}
+local COMBO_GUARD_TIME = 0.30
+local CLIP_BLEND_IN = 0.035
+
+local punchPoses = {
+    JabLoad = {RightShoulder=R(22,24,6), RightElbow=R(140,0,0), LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), Waist=R(0,-10,0)},
+    JabContact = {RightShoulder=R(88,8,2), RightElbow=R(8,0,0), LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), Waist=R(-3,14,0), Neck=R(0,-6,0)},
+    JabRecover = {RightShoulder=R(25,18,4), RightElbow=R(135,0,0), LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), Waist=R(0,4,0)},
+    CrossLoad = {LeftShoulder=R(22,-24,-6), LeftElbow=R(140,0,0), RightShoulder=R(25,18,4), RightElbow=R(135,0,0), Waist=R(0,10,0)},
+    CrossContact = {LeftShoulder=R(88,-8,-2), LeftElbow=R(8,0,0), RightShoulder=R(25,18,4), RightElbow=R(135,0,0), Waist=R(-3,-14,0), Neck=R(0,6,0)},
+    CrossRecover = {LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), RightShoulder=R(25,18,4), RightElbow=R(135,0,0), Waist=R(0,-4,0)},
+    HeavyLoad = {RightShoulder=R(30,24,10), RightElbow=R(140,0,0), LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), Waist=R(4,-24,0), Neck=R(-5,0,0)},
+    HeavyContact = {RightShoulder=R(88,12,2), RightElbow=R(12,0,0), LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), Waist=R(-8,24,0), Neck=R(5,0,0)},
+    HeavyRecover = {RightShoulder=R(25,18,4), RightElbow=R(135,0,0), LeftShoulder=R(25,-18,-4), LeftElbow=R(135,0,0), Waist=R(-3,6,0)},
+}
 local clips = {
     Light1 = {
         {0, {}},
-        -- Compact guard -> forward extension -> guard. The rear hand stays up.
-        {0.07, {RightShoulder=R(25,-8,12), RightElbow=R(115,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(0,-12,0)}},
-        {0.15, {RightShoulder=R(88,0,5), RightElbow=R(8,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(-3,18,0), Neck=R(0,-8,0)}},
-        {0.27, {RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(0,6,0)}},
+        {0.07, punchPoses.JabLoad, "Out"},
+        {0.11, punchPoses.JabLoad},
+        {0.15, punchPoses.JabContact, "In"},
+        {0.185, punchPoses.JabContact},
+        {0.23, punchPoses.JabRecover, "Out"},
+        {0.27, punchPoses.JabRecover},
         {0.34, {}},
     },
     Light2 = {
         {0, {}},
-        {0.09, {LeftShoulder=R(25,8,-12), LeftElbow=R(115,0,0), RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), Waist=R(0,12,0)}},
-        {0.17, {LeftShoulder=R(88,0,-5), LeftElbow=R(8,0,0), RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), Waist=R(-3,-18,0), Neck=R(0,8,0)}},
-        {0.29, {LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), Waist=R(0,-6,0)}},
+        {0.09, punchPoses.CrossLoad, "Out"},
+        {0.13, punchPoses.CrossLoad},
+        {0.17, punchPoses.CrossContact, "In"},
+        {0.205, punchPoses.CrossContact},
+        {0.25, punchPoses.CrossRecover, "Out"},
+        {0.29, punchPoses.CrossRecover},
         {0.36, {}},
     },
     Light3 = {
         {0, {}},
         -- Forward hip pitch and backward knee flexion; hands retain guard.
-        {0.11, {RightShoulder=R(35,-8,18), LeftShoulder=R(35,8,-18), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(6,-18,0), RightHip=R(65,0,0), RightKnee=R(-95,0,0)}},
-        {0.22, {RightShoulder=R(35,-8,18), LeftShoulder=R(35,8,-18), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(10,16,0), RightHip=R(82,0,0), RightKnee=R(-8,0,0), LeftHip=R(-8,0,0)}},
-        {0.43, {RightShoulder=R(35,-8,18), LeftShoulder=R(35,8,-18), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), RightHip=R(40,0,0), RightKnee=R(-65,0,0), Waist=R(4,6,0)}},
+        {0.11, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), Waist=R(6,-18,0), RightHip=R(65,0,0), RightKnee=R(-95,0,0)}, "Out"},
+        {0.18, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), Waist=R(6,-18,0), RightHip=R(65,0,0), RightKnee=R(-95,0,0)}},
+        {0.22, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), Waist=R(10,16,0), RightHip=R(82,0,0), RightKnee=R(-8,0,0), LeftHip=R(-8,0,0)}, "In"},
+        {0.255, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), Waist=R(10,16,0), RightHip=R(82,0,0), RightKnee=R(-8,0,0), LeftHip=R(-8,0,0)}},
+        {0.34, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), RightHip=R(40,0,0), RightKnee=R(-65,0,0), Waist=R(4,6,0)}, "Out"},
+        {0.43, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), RightHip=R(40,0,0), RightKnee=R(-65,0,0), Waist=R(4,6,0)}},
         {0.58, {}},
     },
     Heavy = {
         {0, {}},
-        {0.20, {RightShoulder=R(45,-10,22), RightElbow=R(120,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(4,-28,0), Neck=R(-5,0,0)}},
-        {0.43, {RightShoulder=R(88,0,8), RightElbow=R(12,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(-8,28,0), Neck=R(5,0,0)}},
-        {0.68, {RightShoulder=R(35,-8,18), RightElbow=R(110,0,0), LeftShoulder=R(35,8,-18), LeftElbow=R(110,0,0), Waist=R(-3,8,0)}},
+        {0.20, punchPoses.HeavyLoad, "Out"},
+        {0.38, punchPoses.HeavyLoad},
+        {0.43, punchPoses.HeavyContact, "In"},
+        {0.465, punchPoses.HeavyContact},
+        {0.56, punchPoses.HeavyRecover, "Out"},
+        {0.68, punchPoses.HeavyRecover},
         {0.86, {}},
     },
     Dodge = {
@@ -100,13 +129,13 @@ local clips = {
     },
     Parry = {
         {0, {}},
-        {0.08, {RightElbow=R(100,0,0), LeftElbow=R(100,0,0), RightShoulder=R(60,0,30), LeftShoulder=R(60,0,-30), Waist=R(8,0,0)}},
-        {0.22, {RightShoulder=R(60,0,17), LeftShoulder=R(60,0,-17)}},
+        {0.08, {RightElbow=R(138,0,0), LeftElbow=R(138,0,0), RightShoulder=R(32,15,8), LeftShoulder=R(32,-15,-8), Waist=R(-4,0,0)}},
+        {0.22, {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0)}},
         {0.36, {}},
     },
     BlockHit = {
         {0, {}},
-        {0.06, {RightShoulder=R(60,-12,35), LeftShoulder=R(60,12,-35), RightElbow=R(115,0,0), LeftElbow=R(115,0,0), Waist=R(-6,0,0)}},
+        {0.06, {RightShoulder=R(20,18,4), LeftShoulder=R(20,-18,-4), RightElbow=R(138,0,0), LeftElbow=R(138,0,0), Waist=R(6,0,0)}},
         {0.18, {}},
     },
     BoulderLaunch = {
@@ -119,7 +148,7 @@ local clips = {
 }
 
 -- Positive X pitch brings downward R15 arms toward character-forward (-Z).
-local blockPose = {RightShoulder=R(35,-12,25), LeftShoulder=R(35,12,-25), RightElbow=R(110,0,0), LeftElbow=R(110,0,0), Waist=R(6,0,0)}
+local blockPose = {RightShoulder=R(25,18,4), LeftShoulder=R(25,-18,-4), RightElbow=R(135,0,0), LeftElbow=R(135,0,0), Waist=R(-3,0,0), Neck=R(-4,0,0)}
 local boulderPose = {RightShoulder=R(65,0,26), LeftShoulder=R(65,0,-26), RightElbow=R(35,0,0), LeftElbow=R(35,0,0), Waist=R(-7,0,0)}
 
 -- Only joints authored by a clip are owned; punching never resets walking legs.
@@ -143,7 +172,13 @@ local function poseAt(frames, elapsed, mask, heldPose)
     end
     local span = math.max(0.001, after[1] - before[1])
     local alpha = math.clamp((elapsed - before[1]) / span, 0, 1)
-    alpha = alpha * alpha * (3 - 2 * alpha)
+    if after[3] == "In" then
+        alpha = alpha * alpha
+    elseif after[3] == "Out" then
+        alpha = 1 - (1 - alpha)^3
+    else
+        alpha = alpha * alpha * (3 - 2 * alpha)
+    end
     local result = {}
     for jointName in pairs(mask) do
         local a = before[2][jointName] or heldPose[jointName] or I
@@ -165,7 +200,7 @@ local function getState(character)
     state = {
         joints = collectJoints(character),
         active = nil, blocking = false, boulder = false,
-        offsets = {}, bases = {}, nextJointRefresh = 0,
+        offsets = {}, bases = {}, nextJointRefresh = 0, guardUntil = 0,
     }
     states[character] = state
     return state
@@ -209,6 +244,16 @@ local function targetModel(actor)
     return nil
 end
 
+local function startClip(state, name)
+    local now = os.clock()
+    state.active = {name=name, started=now, entry={}}
+    if attackClips[name] then
+        state.guardUntil = now + clips[name][#clips[name]][1] + COMBO_GUARD_TIME
+    elseif name == "Hit" or name == "Stun" or name == "Dodge" or name == "BoulderLaunch" then
+        state.guardUntil = 0
+    end
+end
+
 AnimationRemote.OnClientEvent:Connect(function(actor, eventName)
     if type(eventName) ~= "string" then return end
     local character = targetModel(actor)
@@ -219,17 +264,20 @@ AnimationRemote.OnClientEvent:Connect(function(actor, eventName)
     if eventName == "BlockStart" then
         state.blocking = true
         state.active = nil
+        state.guardUntil = 0
     elseif eventName == "BlockEnd" then
         state.blocking = false
+        state.guardUntil = 0
     elseif eventName == "BoulderStart" then
         state.boulder = true
         state.blocking = false
         state.active = nil
+        state.guardUntil = 0
     elseif eventName == "BoulderEnd" then
         state.boulder = false
     elseif eventName == "BoulderLaunch" then
         state.boulder = false
-        state.active = {name="BoulderLaunch", started=os.clock()}
+        startClip(state, "BoulderLaunch")
     elseif clips[eventName] then
         if eventName == "Stun" or eventName == "Hit" then
             state.blocking = false
@@ -237,7 +285,7 @@ AnimationRemote.OnClientEvent:Connect(function(actor, eventName)
         elseif eventName == "Parry" then
             impactFX(character, true)
         end
-        state.active = {name=eventName, started=os.clock()}
+        startClip(state, eventName)
     end
 end)
 
@@ -270,17 +318,22 @@ RunService.PreSimulation:Connect(function(dt)
             state.active = nil
             state.blocking = false
             state.boulder = false
+            state.guardUntil = 0
         end
         -- Streaming/custom rigs may expose limb joints after the shoulders.
         if now >= state.nextJointRefresh then
             state.joints = collectJoints(character)
             state.nextJointRefresh = now + 0.5
         end
-        local pose = state.boulder and boulderPose or (state.blocking and blockPose or {})
+        local pose = state.boulder and boulderPose or (state.blocking and blockPose or (now < state.guardUntil and readyPose or {}))
+        local activeMask = nil
+        local entryWeight = 1
         if state.active then
             local name = state.active.name
             local activePose = poseAt(clips[name], now - state.active.started, clipJoints[name], pose)
             if activePose then
+                activeMask = clipJoints[name]
+                entryWeight = math.clamp((now - state.active.started) / CLIP_BLEND_IN, 0, 1)
                 -- Fill only held-pose joints absent from the active clip.
                 local combined = table.clone(pose)
                 for jointName, value in pairs(activePose) do combined[jointName] = value end
@@ -299,8 +352,17 @@ RunService.PreSimulation:Connect(function(dt)
                 elseif target or offset then
                     -- Targets are absolute authored joint poses, relative to this frame's
                     -- locomotion. Untouched joints retain the Animator's exact output.
-                    local desired = target and (base:Inverse() * target) or I
-                    offset = (offset or I):Lerp(desired, blend)
+                    if activeMask and activeMask[name] then
+                        -- The clip already has authored easing. Applying another
+                        -- per-frame low-pass here would delay and soften contact.
+                        local entry = state.active.entry
+                        if not entry[name] then entry[name] = base * (offset or I) end
+                        local goal = entry[name]:Lerp(target, entryWeight)
+                        offset = base:Inverse() * goal
+                    else
+                        local desired = target and (base:Inverse() * target) or I
+                        offset = (offset or I):Lerp(desired, blend)
+                    end
                     local _, angle = offset:ToAxisAngle()
                     if not target and math.abs(angle) < 0.001 then
                         state.offsets[name] = nil
